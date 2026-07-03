@@ -2,7 +2,7 @@
 # Machine-specific paths. Copy this file to config/paths.yml and edit base_dir
 # for your machine. config/paths.yml is gitignored; this template is tracked.
 
-base_dir: /path/to/TteAnalysis
+base_dir: /path/to/TteStrokeDemArbVsCcb
 
 data:
   raw_root: ${base_dir}/data/raw

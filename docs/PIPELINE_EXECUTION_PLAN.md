@@ -1,7 +1,7 @@
 # TTE Reproducibility Pipeline — Master Execution Plan
 
 **Status:** Ready to execute. Self-contained handoff — assumes **no prior conversation context**.
-**Project:** `C:\Users\riccig01\Downloads\TteAnalysis`
+**Project:** `C:\Users\riccig01\Downloads\TteStrokeDemArbVsCcb`
 **Author of plan:** Claude (organizing agent). **Domain owner:** the user (organizing someone else's code for publication; not the original author).
 **Companion files:** `src/index.md` and each `src/*/index.md` (the script map — read those for per-script disposition).
 
@@ -97,7 +97,7 @@ The repository historically contains **two analysis lineages**. Only one is the 
 ## 4. TARGET REPOSITORY STRUCTURE
 
 ```
-TteAnalysis/                          ← repo root (git-tracked)
+TteStrokeDemArbVsCcb/                 ← repo root (git-tracked)
 ├── README.md                         ← run instructions + manuscript-artifact map + limitations
 ├── requirements.txt                  ← pinned Python deps
 ├── .python-version                   ← 3.13
@@ -216,7 +216,7 @@ TteAnalysis/                          ← repo root (git-tracked)
 1. **Source of truth = `run01`/v4** (ARB vs DHP-CCB, N=87,510). The manuscript reports this. Legacy v3/RAS-NONRAS is removed.
 2. **Reproduction scope = 100% of computed artifacts.** Build the 6 gaps. Descriptive Main Table 1 stays static.
 3. **Language = Python analytical pipeline** + R OMOP extraction kept as **non-runnable provenance** (no reachable R analysis exists — legacy R was hand-typed tables / SuperLearner, all dead).
-4. **Destination = this `TteAnalysis` folder**, fresh `git` initialized here. Author's GitHub repo left untouched.
+4. **Destination = this `TteStrokeDemArbVsCcb` folder**, fresh `git` initialized here. Author's GitHub repo left untouched.
 5. **Dead-code disposal = messy-but-complete first commit, then delete in follow-up commits** (clean HEAD, fully recoverable via history).
 6. **Stance = reproduce `run01` exactly.** Do not "fix" documented bugs; surface them as *limitations* in the README.
 

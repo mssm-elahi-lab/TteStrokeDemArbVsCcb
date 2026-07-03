@@ -1,14 +1,33 @@
-# TTE Analysis: ARB vs DHP-CCB
+# Angiotensin Receptor Blocker vs Dihydropyridine Calcium Channel Blocker Initiation and Risk of Stroke and Dementia
 
 Reproducible target-trial-emulation (TTE) pipeline comparing **ARB** versus
 **dihydropyridine calcium-channel-blocker (DHP-CCB)** antihypertensive
 initiation on cognitive (probable dementia / MCI) and vascular (acute ischemic
 stroke) outcomes, using new-user active-comparator design with IPTW-weighted
-Cox models and death-censoring. This is the canonical `run01` v4 analysis
-(ARB vs DHP-CCB, analytic N = 87,510) that the manuscript reports.
+Cox models and death-censoring.
 
 One command regenerates **every computed table and figure in the manuscript**
 from the raw AIRMS extracts.
+
+## Abstract
+
+**Importance:** Angiotensin receptor blockers (ARBs) and dihydropyridine calcium channel blockers (DHP-CCBs) are commonly used first-line antihypertensives, but direct comparisons of cerebrovascular and cognitive outcomes after initiation of these therapies in the same population remain limited.
+
+**Objective:** To compare risk of incident acute ischemic stroke and dementia or mild cognitive impairment (MCI) after ARB vs DHP-CCB initiation among adults with hypertension.
+
+**Design:** Active-comparator, new-user target trial emulation using electronic health record data from 2006 through 2025.
+
+**Setting:** Large urban academic health system in New York City.
+
+**Participants:** Adults aged 40 to 70 years with hypertension who initiated an ARB or index-eligible DHP-CCB after a 180-day antihypertensive washout with 1 year or more of observable follow-up.
+
+**Exposures:** ARB-based vs DHP-CCB-based antihypertensive initiation.
+
+**Main Outcomes and Measures:** Primary outcomes were incident acute ischemic stroke and a cognitive composite of probable dementia or MCI. Stabilized inverse probability of treatment-weighted Cox models estimated hazard ratios (HRs).
+
+**Results:** The cohort included 87,510 adults, including 34,732 ARB and 52,778 DHP-CCB initiators. Mean age was approximately 58 years, and 47.6% were female. After weighting, baseline covariates were closely balanced (maximum absolute standardized mean difference, 0.013). ARB initiation was associated with lower risk of acute ischemic stroke vs DHP-CCB initiation (605 vs 1247 events; HR, 0.85; 95% CI, 0.77-0.93; Bonferroni-adjusted P = .002) and lower risk of probable dementia or MCI in the primary analysis (143 vs 300 events; HR, 0.77; 95% CI, 0.63-0.95; Bonferroni-adjusted P = .02). Sensitivity analyses supported the ischemic stroke finding across monotherapy-only, baseline blood pressure-adjusted, and extended follow-up analyses. The dementia/MCI association remained directionally favorable but did not retain statistical significance in some sensitivity analyses.
+
+**Conclusions and Relevance:** In this target trial emulation, ARB initiation was associated with lower risk of both acute ischemic stroke and probable dementia or MCI compared with DHP-CCB initiation. When either class is clinically appropriate, ARB-based initiation may warrant consideration as a strategy associated with more favorable cerebrovascular and cognitive outcome patterns.
 
 ## Quick Start
 
@@ -18,6 +37,14 @@ cp config/paths.example.yml config/paths.yml
 # Edit config/paths.yml: set base_dir to this project's location on your machine
 python main.py --all                      # regenerate all artifacts
 ```
+
+## Key Figures
+
+**Figure 1: Cohort Selection Flow Diagram**  
+<img src="static/figure1_flow_diagram.png" width="800" alt="Cohort Flow">
+
+**Figure 2: Forest Plot of Hazard Ratios**  
+<img src="static/figure_2_primary_outcomes.png" width="800" alt="Forest Plot">
 
 ## Tests
 
