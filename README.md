@@ -135,13 +135,11 @@ Two-tier YAML, loaded and merged by `src/config.py` into frozen dataclasses:
 
 ## Data
 
-Raw AIRMS extracts live under `data/raw/` (gitignored). The pipeline reads from
-`extract_v3` (the code's "most recent extract" / v4), plus a small appendicitis
+Raw AIRMS extracts live under `data/raw/` (gitignored) plus a small appendicitis
 falsification extract under `data/raw/appendicitis/`. `data/EXTRACTS.md`
 documents the provenance and references `DOWNLOAD_MANIFEST.csv` (the export's
-authoritative file index). Raw data extraction itself (`src/omop_extract/`) is
-kept as **non-runnable provenance** — it needs protected OMOP/BioMe database
-access and is not required to reproduce the analysis from the shared extracts.
+authoritative file index). Raw data extraction itself (`src/omop_extract/`) needs protected OMOP/BioMe database
+access.
 
 ## Outputs
 
@@ -151,19 +149,6 @@ Generated into `outputs/` (gitignored, fully regenerable):
 - `outputs/sensitivity/<name>/` — one folder per sensitivity analysis
 - `outputs/logs/` — timestamped, config-version-stamped run logs
 
-## Limitations
-
-1. **Data-access boundary.** Raw extraction (`src/omop_extract/`) requires
-   OMOP/BioMe DB access and cannot be run by reviewers; the pipeline reproduces
-   the analysis from the shared raw extracts. This is expected for protected
-   health data.
-2. **Informative censoring.** Addressed by the `run01` death-censoring design;
-   still disclosed as a limitation because death linkage may be incomplete.
-3. **Main Table 1** (target-trial specification) is descriptive design prose and
-   is intentionally not script-generated.
-4. Author issues already resolved in `run01` (recorded as resolved): race
-   imbalance handled via a `race_unknown_r` covariate; multiple testing handled
-   via Bonferroni + BH-FDR across the two primary outcomes.
 
 ## Repository layout
 
