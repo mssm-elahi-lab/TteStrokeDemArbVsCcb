@@ -1,0 +1,29 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.coverage
+config/paths.yml
+outputs/
+data/raw/
+data/processed/
+logs/
+*.log
+.DS_Store
+Thumbs.db
+Manuscript/
+
+# Patient-level analysis datasets (row-level PHI + regenerable summary outputs).
+# Kept locally; never committed. Reproduce via `python main.py --all` -> outputs/.
+Analysis Datasets/
+
+# Claude Code runtime state
+.claude/
+handoffs/
+
+# Legacy raw AIRMS data pulls — duplicate of data/raw/extract_v3/, large (~15GB),
+# protected PHI, recoverable from the original AIRMS export (not from git history).
+Version 1 of AIRMS data pull/
+Version 2 of AIRMS data pull/
+Version 3 of AIRMS data pull/
+

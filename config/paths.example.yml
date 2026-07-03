@@ -1,0 +1,29 @@
+# config/paths.example.yml — Template for config/paths.yml
+# Machine-specific paths. Copy this file to config/paths.yml and edit base_dir
+# for your machine. config/paths.yml is gitignored; this template is tracked.
+
+base_dir: /path/to/TteAnalysis
+
+data:
+  raw_root: ${base_dir}/data/raw
+  extract_v1: ${data.raw_root}/extract_v1
+  extract_v2: ${data.raw_root}/extract_v2
+  extract_v3: ${data.raw_root}/extract_v3    # code's "most recent extract" / "v4"
+
+  # Specific files read from extract_v3 (see data/EXTRACTS.md)
+  antihypertensive_exposures: ${data.extract_v3}/raw_antihypertensive_exposures.parquet
+  spine: ${data.extract_v3}/cohort_spine_raw.parquet
+  conditions: ${data.extract_v3}/raw_conditions.parquet
+  icd_map: ${data.extract_v3}/icd_to_snomed_map.parquet
+  baseline_medications: ${data.extract_v3}/raw_baseline_medications.parquet
+  baseline_covariates_augmented: ${data.extract_v3}/baseline_covariates_patient_augmented.parquet
+
+  # Required only by the appendicitis_falsification sensitivity analysis
+  # (falsification / negative control). See data/EXTRACTS.md.
+  appendicitis_narrow: ${data.raw_root}/appendicitis/appendicitis_conditions_raw_NARROW.parquet
+
+outputs:
+  root: ${base_dir}/outputs
+  core: ${outputs.root}/core
+  sensitivity: ${outputs.root}/sensitivity
+  logs: ${outputs.root}/logs

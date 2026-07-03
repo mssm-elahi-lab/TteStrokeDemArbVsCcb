@@ -1,0 +1,236 @@
+# config/analysis.yml
+# Version-controlled, shared study parameters, clinical definitions, and design
+# decisions. Ported verbatim from Scripts/Core/run01_config.py (2026-05-31
+# correction pass, C1-C10). DO NOT MODIFY without documenting rationale below.
+
+version: "1.0"
+last_modified: "2026-05-31"
+
+analysis:
+  end_date: "2025-12-31"      # v3 AIRMS analysis — fixed for reproducibility
+  random_seed: 42
+
+cohort:
+  washout_days: 180
+  min_age: 40
+  max_age: 70
+  min_followup_days: 365
+
+propensity_score:
+  trim_lower: 0.01
+  trim_upper: 0.99
+  covariates_fixed:
+    - age_at_index
+    - female
+    - race_black_r
+    - race_asian_r
+    - race_other_r
+    - race_unknown_r    # EHR missingness/coding category; retained as separate indicator
+    - hispanic
+    - bl_diabetes
+    - bl_ckd
+    - bl_heart_failure
+    - bl_cad_mi
+    - bl_afib
+    - bl_pad
+    - bl_tia
+  # index_year categorical dummies added dynamically (ref = min year)
+  # bl_cva EXCLUDED: concurrent-index CVA biases PS; see README_design_changes.md
+  # race_white_r: reference category (omitted from model)
+
+outcomes:
+  dementia_lag_days: 180
+  stroke_lag_days: 90
+  # Primary outcomes: stroke_s1, b4_mci. Secondary: b4, stroke_s2.
+  order:
+    - name: stroke_s1
+      role: primary
+      label: "Acute ischemic stroke"
+    - name: b4_mci
+      role: primary
+      label: "Probable dementia + mild cognitive impairment"
+    - name: b4
+      role: secondary
+      label: "Probable dementia alone"
+    - name: stroke_s2
+      role: secondary
+      label: "Ischemic stroke + transient ischemic attack"
+
+multiple_testing:
+  # Bonferroni and BH-FDR applied across PRIMARY outcomes only (N=2).
+  # Secondary outcomes: raw p-values only. bonferroni_k = count of primary outcomes.
+  primary_alpha: 0.05
+
+sensitivity:
+  # Parameters for the sensitivity / timing analyses. Centralised here so the
+  # analytic choices are auditable rather than hard-coded in the scripts.
+
+  bp_hierarchy:
+    # Baseline-BP model-hierarchy sensitivity (Supp Table 5). Each model is fit
+    # on its own complete-case population over the covariates it adds.
+    source_columns:            # augmented-covariate parquet column -> short name
+      sbp_bl: closest_cleaned_value__sbp
+      dbp_bl: closest_cleaned_value__dbp
+      bmi_bl: closest_cleaned_value__bmi
+    binary_flag_covariates:    # augmented binary flags, missing filled with 0
+      - has_365d_ace_inhibitor
+      - has_365d_beta_blocker
+    models:
+      - id: A_bp_only
+        complete_case: [sbp_bl, dbp_bl]
+        add_covariates: [sbp_bl, dbp_bl]
+      - id: B_bp_meds
+        complete_case: [sbp_bl, dbp_bl]
+        add_covariates: [sbp_bl, dbp_bl, has_365d_ace_inhibitor, has_365d_beta_blocker]
+      - id: C_m1a
+        complete_case: [sbp_bl, dbp_bl, bmi_bl]
+        add_covariates: [sbp_bl, dbp_bl, bmi_bl, has_365d_ace_inhibitor, has_365d_beta_blocker]
+
+  curve_divergence:
+    # Timing of IPTW survival-curve divergence (Supp Table 7 timing panels).
+    landmarks_years: [1, 2, 3, 5]
+    intervals_years: [[0, 1], [1, 2], [2, null]]   # null upper bound = open-ended
+
+  extended_followup:
+    # Extended-follow-up sensitivity (Supp Table 8): restrict to index dates
+    # before this cut-off (~>=6 years potential follow-up).
+    index_date_cutoff: "2020-01-01"
+
+  followup_timing:
+    # Follow-up duration + event-timing distribution (Supp Table 7).
+    followup_column: b4_mci_time_years              # primary cognitive-outcome timeline
+    bucket_edges_months: [0, 6, 12, 24, 36, 60, null]   # null upper edge = +inf
+    bucket_labels: ["0-6", "6-12", "12-24", "24-36", "36-60", ">60"]
+
+drug_classes:
+  arb_ingredients:
+    - losartan
+    - valsartan
+    - olmesartan
+    - telmisartan
+    - candesartan
+    - azilsartan
+    # irbesartan, eprosartan: absent from v4 extract
+
+  dhp_ccb_primary_index:
+    - amlodipine
+    - nifedipine
+
+  dhp_ccb_additional:
+    - felodipine
+    - isradipine
+    # nisoldipine: absent from v4 extract
+
+  # False (default): index = amlodipine + nifedipine only.
+  # True (AUTHOR_REVIEW_REQUIRED before changing): adds felodipine + isradipine.
+  # Washout always includes all 4 regardless of this toggle.
+  include_additional_dhp_index: false
+
+  thiazide_washout:
+    - hydrochlorothiazide
+    - chlorthalidone
+    - indapamide
+    # metolazone: excluded pending author review
+  thiazide_review_pending:
+    - metolazone
+
+  acei_washout:
+    - lisinopril
+    - enalapril
+    - ramipril
+    - captopril
+    - benazepril
+    # quinapril, fosinopril, moexipril, perindopril, trandolapril: absent from v4
+  acei_washout_window_days: 180   # must match cohort.washout_days; explicit for clarity
+
+  dhp_ccb_excluded_iv_nondhp:
+    - clevidipine   # IV/procedural — AUTHOR_REVIEW_REQUIRED if disputed
+    - nicardipine   # IV/procedural — AUTHOR_REVIEW_REQUIRED if disputed
+    - nimodipine    # neurological; absent from v4 extract
+    - diltiazem     # non-DHP CCB
+    - verapamil     # non-DHP CCB
+
+clinical_definitions:
+  cognitive:
+    # B4 (probable dementia alone) vs B4_MCI (B4 + mild cognitive impairment).
+    # Source: cognitive_bucket_rerun_20260526/codebook_cognitive_buckets.csv
+    # B4_MCI = PRIMARY cognitive outcome; B4 = SECONDARY.
+    b4_snomed_ids: [378419, 443605, 4182210]
+    b4_mci_snomed_ids: [378419, 443605, 4182210, 439795, 4009705]
+    b4_icd_ids:
+      - 45533052   # F00 Dementia in Alzheimer disease -> 378419
+      - 1568087    # F01 Vascular dementia -> 443605
+      - 1568293    # G30 Alzheimer's disease -> 378419
+      - 35207114   # F03 Unspecified dementia -> 4182210
+      - 44824105   # ICD9-290 Dementias -> 4182210
+    mci_icd_ids:
+      - 45595932   # G31.84 MCI, uncertain etiology -> 439795
+      - 45553736   # R41.81 Age-related cognitive decline -> 4009705
+    # b4_mci_icd_ids (full set for prevalent exclusion) = b4_icd_ids + mci_icd_ids
+
+  vascular:
+    # Three stroke definitions compared in preflight_stroke_definition_counts.md:
+    #   A. Strict AIS:     443454 only
+    #   B. Harmonized AIS: 443454 + 372924  <- DEFAULT PRIMARY (stroke_s1)
+    #   C. Broad AIS:      443454 + 372924 + 4164092  <- SENSITIVITY ONLY
+    # 381591 EXCLUDED from all: maps from multiple ICD sources incl. stenosis codes.
+    stroke_s1_snomed_ids: [443454, 372924]
+    stroke_broad_snomed_ids: [443454, 372924, 4164092]   # sensitivity only
+    tia_snomed_ids: [373503]
+    stroke_s1_icd_ids:
+      - 1569193    # ICD10 I63.x acute ischemic stroke -> 443454
+      - 44824253   # ICD9 434.x cerebral arterial occlusion -> 372924
+    stroke_broad_icd_ids_extra:
+      - 44835952   # ICD9 436 acute ill-defined CVD -> 4164092 (SENSITIVITY ONLY)
+    # stroke_broad_icd_ids (sensitivity) = stroke_s1_icd_ids + stroke_broad_icd_ids_extra
+    tia_icd_ids:
+      - 1568360    # G45.9 TIA unspecified -> 373503
+      - 44820875   # ICD9 435.x TIA -> 373503
+
+  prevalent_exclusion:
+    # Cognitive: exclude if B4_MCI first_date <= index_date (conservative global union)
+    # Vascular:  exclude if stroke S1 first_date <= index_date
+    # TIA prior: NOT excluded from cohort; used as a PS model covariate only
+    cognitive_uses: b4_mci_snomed_ids
+    vascular_uses: stroke_s1_snomed_ids
+
+  comorbidities:
+    # Unchanged from v3; resolved against v4 icd_to_snomed_map at build time.
+    hypertension_icd_ids: [35207668, 1569120, 1569121, 1569122, 1569124, 44833556, 44832366, 44832367, 44827780, 44832370]
+    diabetes_icd_ids: [1567940, 1567956, 1567972, 44833365]
+    ckd_icd_ids: [1571486, 44830172]
+    heart_failure_icd_ids: [1569178, 44824250]
+    cad_mi_icd_ids: [1569125, 1569126, 1569130, 1569133, 44832372, 44834725, 44835930, 44827784]
+    afib_icd_ids: [1569170, 44824248, 44821957, 44820868]
+    pad_icd_ids: [1569271, 1569324, 44825446, 44826654]
+    # bl_tia_icd_ids = vascular.tia_icd_ids (same list; prior TIA is a covariate)
+
+  race_coding:
+    # Mutually exclusive categories. Unknown/Unmapped is NOT combined with Other.
+    # Unknown/Unmapped retained and modeled as a separate race_unknown_r covariate
+    # in the PS model; included in PS fit when other covariates are complete.
+    white_concept_ids: [8527, 38003598]
+    black_concept_ids: [8516, 38003599]   # 38003599 = CDC code active in BioMe
+    asian_concept_ids: [8515, 38003601]
+    unknown_concept_ids: [0, 8552, 8657]  # 0 = no matching concept; null treated same
+    # Other = RACE_CONCEPT_ID nonmissing and not in any above set
+
+  legacy_aliases:
+    # Kept for backward compatibility; prefer the lists above in new code.
+    mci_omop_concept_id: 439795   # G31.84 — part of cognitive.b4_mci_snomed_ids
+    stroke_s1_omop: 443454        # I63.x  — part of vascular.stroke_s1_snomed_ids
+    tia_omop: 373503               # G45.9/ICD9-435 — vascular.tia_snomed_ids
+    # 381591 EXCLUDED from all definitions: stenosis/ill-defined CVD
+
+# Design correction log (C1-C10), preserved verbatim from run01_config.py docstring.
+design_corrections:
+  C1: "V4_CONDITIONS and V4_ICD_MAP corrected to point to v4 extract, not v3."
+  C2: "Dementia outcomes use v4 harmonized B4/B4_MCI bucket definitions (from cognitive_bucket_rerun_20260526 codebook). B4_MCI is PRIMARY cognitive outcome; B4 is SECONDARY."
+  C3: "Stroke primary = harmonized AIS (443454+372924). Broad (4164092) = SENSITIVITY."
+  C4: "Prevalent exclusion: cognitive = B4_MCI union; vascular = primary stroke S1. Prior TIA NOT excluded from cohort (covariate only)."
+  C5: "Censoring uses clinical_end_date = max(obs_end, last_condition_date, last_drug_date, last_baseline_med_date), then min with death/analysis cap."
+  C6: "ACEi washout uses date-based window (1-180d pre-index) from raw_baseline_medications (DRUG_EXPOSURE_START_DATE confirmed present)."
+  C7: "Race: mutually exclusive White/Black/Asian/Other/Unknown. Unknown is NOT combined with Other. Unknown included in PS fit (logged) — corrected 2026-06-04; prior comment said excluded."
+  C8: "Table 2 includes Bonferroni+BH-FDR across 2 primary outcomes only."
+  C9: "No arbitrary penalizer; document if used."
+  C10: "V4 data throughout (conditions, ICD map, spine, medications)."
