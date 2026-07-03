@@ -12,6 +12,7 @@ logs/
 .DS_Store
 Thumbs.db
 Manuscript/
+legacy/
 
 # Patient-level analysis datasets (row-level PHI + regenerable summary outputs).
 # Kept locally; never committed. Reproduce via `python main.py --all` -> outputs/.
